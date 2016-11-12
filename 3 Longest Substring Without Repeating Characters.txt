@@ -1,0 +1,35 @@
+public class Solution {
+    public int lengthOfLongestSubstring(String s) {
+        if(s==null||s.length()==0){
+            return 0;
+        }
+        if(s.length()==1){
+        	return 1;
+        }
+        char[] arr_s = s.toCharArray();
+        String max = String.valueOf(arr_s[0]);
+        int preLen = 1;
+        int preRes = 0;
+        for(int i = 1;i<arr_s.length;i++){
+            int isExist = max.indexOf(arr_s[i]);
+            if(isExist == -1){
+                // 没有出现在max中
+                max = max + String.valueOf(arr_s[i]);
+                preLen = preLen + 1;
+                if(i==arr_s.length - 1){
+                	if(preRes < preLen){
+                        preRes = preLen;
+                    }
+                }
+            }else{
+                //如果存在
+                if(preRes < preLen){
+                    preRes = preLen;
+                }
+                max = max.substring(isExist+1, max.length()) + String.valueOf(arr_s[i]);
+                preLen = max.length();
+            }
+        } // for
+        return preRes;
+    }
+}

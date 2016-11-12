@@ -1,0 +1,28 @@
+Hey, guys!
+
+Actually, there's nothing special in my solution except the comparably short Java code. It's just a simple sliding window approach which is greatly described in other posts.
+
+In short, we got the source histogram from the dictionary L and build the new histogram for each possible window comparing it with the help of Java's equals method to the source one. Additionally, for the sake of tiny optimization, we check the starting word for being in the dictionary.
+
+public List<Integer> findSubstring(String S, String[] L) {
+    List<Integer> result = new ArrayList<>();
+    int size = L[0].length();
+    if (L.length == 0 || L[0].isEmpty() || L[0].length() > S.length()) 
+        return result;
+    Map<String, Integer> hist = new HashMap<>();
+    for (String w : L) {
+        hist.put(w, !hist.containsKey(w) ? 1 : hist.get(w)+1);
+    }
+    for (int i = 0; i+size*L.length <= S.length(); i++) {
+        if (hist.containsKey(S.substring(i, i+size))) {
+            Map<String, Integer> currHist = new HashMap<>();
+            for (int j = 0; j < L.length; j++) {
+                String word = S.substring(i+j*size, i+(j+1)*size);
+                currHist.put(word, !currHist.containsKey(word) ? 
+                        1 : currHist.get(word)+1);
+            }
+            if (currHist.equals(hist)) result.add(i);
+        }
+    }
+    return result;
+}

@@ -1,0 +1,74 @@
+ public ListNode mergeKLists(ListNode[] lists) {
+        ListNode newHead = new ListNode(-1);
+        if (lists == null || lists.length == 0) {
+            return null;
+        }
+
+        if (lists.length == 1) {
+            return lists[0];
+        }
+
+        if (lists.length == 2) {
+            return mergeTwoLists(lists[0], lists[1]);
+        }
+
+        ListNode temp1 = mergeKLists(copyList(lists, 0, lists.length / 2));
+        ListNode temp2 = mergeKLists(copyList(lists, lists.length / 2, lists.length));
+        return mergeTwoLists(temp1, temp2);
+    }
+
+    /**
+     * make the sub-array according to indexes
+     */
+    private ListNode[] copyList(ListNode[] lists, int start, int end) {
+		if (start >= end || end > lists.length) {
+            return null;
+        }
+
+        ListNode[] result = new ListNode[end - start];
+        int index = 0;
+        for (int i = start; i < end; i++) {
+            result[index] = lists[i];
+            index++;
+        }
+
+        return result;
+    }
+    
+    private ListNode mergeTwoLists(ListNode L, ListNode R) {
+        if (L == null && R == null) {
+            return null;
+        }
+
+        if (L == null || R == null) {
+            return L == null ? R : L;
+        }
+
+        ListNode newHead = new ListNode(-1);
+		ListNode cur = newHead;
+
+        while (L != null && R != null) {
+            if (L.val <= R.val) {
+                cur.next = L;
+                L = L.next;
+            } else {
+                cur.next = R;
+                R = R.next;
+            }
+            cur = cur.next;
+        }
+
+        while (L != null) {
+            cur.next = L;
+            L = L.next;
+            cur = cur.next;
+        }
+
+        while (R != null) {
+            cur.next = R;
+            R = R.next;
+            cur = cur.next;
+        }
+
+        return newHead.next;
+    }

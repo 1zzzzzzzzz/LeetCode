@@ -1,0 +1,94 @@
+It's not too hard to find some resemblance between this problem and minimum-window-substring. Actually the main difference is the fact that we are interested at some interval length: we want intervals with fixed length K * M, where K is the number of strings in the "words" array and M the length of each target string. In order to apply the same idea we used for that problem, all we need to do is to map each string from the "words" array to something we are able to index (I prefer to use hashing for this). Also, in order to speed up the algorithm, we can find all occurrences of those strings in S (which is equivalent to do it on demand, but we will potentially do the same matching twice). Notice that, we can simply apply these occurrences as they appear because we are assured that no word is contained by some other. Finally, we use all this information to process each possibility. Notice here that, the fact that all strings has the same length, implies that we have just M (being M the length of each target string) possible starting points, hence we end up performing M linear scans over array with length O(N/M) (being N the length of S) and that makes the scanning stage of the algorithm to be linear on the length of S.
+
+//String s = "manmikbarfoobarmanfoobar"
+//String[] words = {"man", "bar", "bar", "foo", "man"}
+
+
+public List<Integer> findSubstring(String s, String[] words) {
+	int N = s.length(); // 大串的长度N
+	List<Integer> indexes = new ArrayList<Integer>(s.length());
+	if (words.length == 0) {
+		return indexes;
+	}
+	int M = words[0].length(); //每个单词的长度M
+	if (N < M * words.length) {
+		return indexes;
+	}
+	int last = N - M + 1;  //最后一个单词开始的位置,即i的循环结尾处
+	
+	//map each string in words array to some index and compute target counters
+	Map<String, Integer> mapping = new HashMap<String, Integer>(words.length);
+	int [][] table = new int[2][words.length];  //两行
+	int failures = 0, index = 0;
+	for (int i = 0; i < words.length; ++i) {
+		Integer mapped = mapping.get(words[i]);
+		if (mapped == null) {
+			++failures; //总共多少个单词
+			mapping.put(words[i], index); //首次放，如“bar, 0”
+			mapped = index++;
+		}
+		++table[0][mapped];  //第0列每个单词的数目减一
+	}
+	
+	/*  table    索 引： 0     1	2	3  //mapping中存储的value
+	 *         第0行值： 2	   2	1
+	 *         第1行值： 0     0	0
+     *      对应字符串："man""bar" "foo"
+     *
+     */	 
+	
+	//find all occurrences at string S and map them to their current integer, -1 means no such string is in words array
+	//如对于 String s = "manmikbarfoobarmanfoobar"
+	     为方便好看，字符串可以写成："m  a  n  m  i  k  b  a  r  f  o  o  b  a  r  m  a  n  f  o  o  b  a  r"  （中间加两个空格）
+                          smapping[]  0 -1 -1 -1 -1  -1 1 -1 -1  2 -1 -1  1 -1 -1  0 -1 -1  2  -1 -1 1  -1 -1
+						  （smapping存单词在table中索引）
+	
+	int [] smapping = new int[last];
+	for (int i = 0; i < last; ++i) {
+		String section = s.substring(i, i + M);  //从i处截取每个单词
+		Integer mapped = mapping.get(section);
+		if (mapped == null) {
+			smapping[i] = -1;
+		} else {
+			smapping[i] = mapped;
+		}
+	}
+	
+	//fix the number of linear scans
+	//初始failures = 3, M = 3, N = 24, last = 24-3+1 = 22;
+	
+	for (int i = 0; i < M; ++i) {
+		//reset scan variables
+		int currentFailures = failures; //number of current mismatches
+		int left = i, right = i;
+		Arrays.fill(table[1], 0);  //table[1]全部填充0
+		//here, simple solve the minimum-window-substring problem
+		
+		while (right < last) {
+		    //找到一个存在的
+			while (currentFailures > 0 && right < last) {
+				int target = smapping[right];
+				//如果当前单词存在，且保证每个单词只减一次
+				if (target != -1 && ++table[1][target] == table[0][target]) {
+					--currentFailures;
+				}
+				right += M;
+			}
+			//往indexes中加入开始索引号
+			while (currentFailures == 0 && left < right) {
+				int target = smapping[left];
+				if (target != -1 && --table[1][target] == table[0][target] - 1) {
+					int length = right - left;
+					//instead of checking every window, we know exactly the length we want
+					if ((length / M) ==  words.length) {
+						indexes.add(left);
+					}
+					++currentFailures;
+				}
+				left += M;
+			}
+		}
+		
+	}
+	return indexes;
+}
